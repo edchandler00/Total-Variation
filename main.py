@@ -25,6 +25,7 @@ import MFISTA
 
 
 Bobs = scipy.io.loadmat('cameraman_Bobs_blurry.mat')["Bobs"]
+
 PSF = 1/9 * np.ones((3,3))
 P_center = np.array([1,1])
 
@@ -43,5 +44,8 @@ X_deblur = MFISTA.mfista(Bobs=Bobs, PSF=PSF, P_center=P_center, reg=0.001, l=-np
 # }
 # X_deblur = MFISTA.mfista(Bobs=Bobs, PSF=PSF, P_center=P_center, reg=0.001, l=-np.inf, u=np.inf, max_iter=20, BC='periodic', tv_type='iso', subprob=subprob_params)
 
-plt.imshow(X_deblur, cmap="gray", vmin=0, vmax=1)
+fig, (ax1, ax2) = plt.subplots(1,2)
+
+ax1.imshow(Bobs, cmap="gray", vmin=0, vmax=1)
+ax2.imshow(X_deblur, cmap="gray", vmin=0, vmax=1)
 plt.show()

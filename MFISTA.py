@@ -83,7 +83,6 @@ def mfista(Bobs, PSF, P_center, reg, l, u, max_iter, BC, tv_type, subprob, show_
             plt.draw()
             plt.pause(0.0001)
 
-    # plt.show()
 
     x_star = x_k
     return x_star
