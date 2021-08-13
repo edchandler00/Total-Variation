@@ -4,39 +4,49 @@ import util
 import scipy.fftpack
 import matplotlib.pyplot as plt
 
-def mfista(Bobs, PSF, P_center, reg, l, u, max_iter, BC, tv_type, subprob, show_fig=False):
-    # TODO: check about P_center indicing. currently using 0 
-    m, n = Bobs.shape[:2]
+def mfista(b, P, P_center, reg, l, u, max_iter, boundary_condition, tv_type, subprob, show_fig=False):
+    """
+    b: observed blurry/noisy image
+    P: PSF
+    P_center: Center coordinates of PSF (Note: should be 0-indexed, unlike the MATLAB code)
+    reg: The regularization parameter lambda
+    l: Lower bound constraint
+    u: Upper bound constraint
+    max_iter: Maximum number of iterations for MFISTA to run
+    boundary_condition: The choice of boundary condition (reflexive or periodic)
+    tv_type: The choice of Total Varation (iso or l1)
+    subprob["max_iter"]: Maximum number of iterations to run the denoising subproblem on each iteration of MFISTA
+    subprob["epsilon"]: Denoising subproblem stopping criteria
+    show_fig: Whether or not to show the image as optimize (runs slower) (True or False)
+    """
+    m, n = b.shape[:2]
 
-    # Padding PSF
-    Pbig = util.padPSF(PSF, m, n)
-
-    if BC == "reflexive":
+    Pbig = util.padPSF(P, m, n)
+    if boundary_condition == "reflexive":
         def trans(the_input):
             return scipy.fftpack.dctn(the_input, type=2, norm="ortho")
         def inv_trans(the_input):
             return scipy.fftpack.dctn(the_input, type=3, norm="ortho") 
-        e1 = np.zeros((m,n))
-        e1[0,0] = 1 # what is this for??
-        Sbig = scipy.fftpack.dctn(util.dctshift(Pbig, P_center) , type=2, norm="ortho") / scipy.fftpack.dctn(e1 , type=2, norm="ortho")
-    elif BC == "periodic":  #FIXME: this is not working!! 
+        temp = np.zeros((m,n))
+        temp[0,0] = 1
+        # TODO: Is this the exact same as A? Or is it slightly different (the code doesn't follow the equations exactly 
+        # if it is meant to be A... I think).
+        Sbig = scipy.fftpack.dctn(util.dctshift(Pbig, P_center) , type=2, norm="ortho") / scipy.fftpack.dctn(temp , type=2, norm="ortho")
+    elif boundary_condition == "periodic": 
         def trans(the_input):
             return 1/np.sqrt(m*n) * np.fft.fft2(the_input)
         def inv_trans(the_input):
             return np.sqrt(m*n) * np.fft.ifft2(the_input)
 
-        # TODO: make sure I don't need 1-P_center (I don't think I do because of diff in indexing)
-        # TODO: figure out why -P_center and the compute of eigenvalues of blurring matrix
-        Sbig = np.fft.fft2( util.circshift(Pbig, -P_center) ) # this is good when using 0 indexing
+        Sbig = np.fft.fft2( util.circshift(Pbig, -P_center) )
     else:
-        quit("ruh roh")
+        quit("Invalid boundary condition (var: boundary_condition). Must be either 'reflexive' or 'periodic'") # TODO: Throw an error
 
-    Btrans = trans(Bobs) # TODO: figure out what this is!!!!
+    b_trans = trans(b) # TODO: figure out why need to do this
 
-    #FIXME: change back!!!!!!!
-    L = 2 * np.max(  (np.abs(Sbig))**2 , axis=None)  # Lipschitz constant TODO: figure out what this is
+    L = 2 * np.max(  (np.abs(Sbig))**2 , axis=None)  # Lipschitz constant TODO: learn what this is
 
-    x_k = Bobs
+    x_k = b
     y_kplus1 = x_k
     t_kplus1 = 1
     
@@ -47,20 +57,20 @@ def mfista(Bobs, PSF, P_center, reg, l, u, max_iter, BC, tv_type, subprob, show_
         t_k = t_kplus1
         y_k = y_kplus1
 
-        D = Sbig * trans(y_k) - Btrans
+        y_k_error = Sbig * trans(y_k) - b_trans # equiv to variable D in matlab code. I think this variable name makes sense for what it is.
 
-        y_k = y_k - 2/L * inv_trans(np.conj(Sbig) * D) 
+        y_k = y_k - 2/L * inv_trans(np.conj(Sbig) * y_k_error) 
         y_k = np.real(y_k) # TODO: figure out why might be complex???
 
         if k == 1:
-            z_k, num_iter, (p,q) = fgp(y_k, (2*reg)/L, l, u, [], subprob['max_iter'], subprob['epsilon'], subprob['tv_type'], False)
+            z_k, num_iter, (p,q) = fgp(b=y_k, reg=(2*reg)/L, l=l, u=u, param_init=[], max_iter=subprob['max_iter'], epsilon=subprob['epsilon'], tv_type=tv_type, print_info=False)
         else:
-            z_k, num_iter, (p,q) = fgp(y_k, (2*reg)/L, l, u, [p,q], subprob['max_iter'], subprob['epsilon'], subprob['tv_type'], False)
+            z_k, num_iter, (p,q) = fgp(b=y_k, reg=(2*reg)/L, l=l, u=u, param_init=[p,q], max_iter=subprob['max_iter'], epsilon=subprob['epsilon'], tv_type=tv_type, print_info=False)
 
 
-        # This is MFISTA
+        # Only implementing MFISTA (and not also FISTA), so I don't have the outer conditional that is in matlab code
         total_var = util.total_var(z_k, tv_type)
-        func_val = np.linalg.norm(Sbig * trans(z_k) - Btrans, 'fro')**2 + 2*reg*total_var # TODO: figure this out!!
+        func_val = np.linalg.norm(Sbig * trans(z_k) - b_trans, 'fro')**2 + 2*reg*total_var # This is just F(x): f(x) is L side of + and g(x) is R side
 
         if (k > 1):
             if func_val > func_vals[-1]:
@@ -69,7 +79,8 @@ def mfista(Bobs, PSF, P_center, reg, l, u, max_iter, BC, tv_type, subprob, show_
             else:
                 x_k = z_k
 
-        func_vals.append(func_val) # TODO: make sure this is okay (they only do when nargs is 2, but I think that's wrong)
+        func_vals.append(func_val)
+        
         t_kplus1 = (1+np.sqrt(1 + 4 * (t_k**2) )) / 2
         y_kplus1 = x_k + (t_k / t_kplus1) * (z_k - x_k) + (t_k - 1) / t_kplus1 * (x_k - x_old)
 

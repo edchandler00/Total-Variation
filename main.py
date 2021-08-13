@@ -10,7 +10,7 @@ import MFISTA
 # print(Bobs.dtype)
 # print(f'Bobs {Bobs}')
 # # plt.imshow(Bobs, cmap="gray", vmin=0, vmax=1)
-# x_star, _, _ = fgp(b=Bobs, reg=0.02, l=-np.inf, u=np.inf, P_init=[], N=100, epsilon=1e-4, tv_type="iso", print_info=True)
+# x_star, _, _ = fgp(b=Bobs, reg=0.02, l=-np.inf, u=np.inf, param_init=[], max_iter=100, epsilon=1e-4, tv_type="iso", print_info=True)
 
 # plt.imshow(x_star, cmap="gray", vmin=0, vmax=1)
 # plt.show()
@@ -33,16 +33,14 @@ P_center = np.array([1,1])
 subprob_params = {
     'max_iter': 10, 
     'epsilon': 1e-5,
-    'tv_type': 'iso'
 }
-X_deblur = MFISTA.mfista(Bobs=Bobs, PSF=PSF, P_center=P_center, reg=0.001, l=-np.inf, u=np.inf, max_iter=100, BC='reflexive', tv_type='iso', subprob=subprob_params, show_fig=True)
+X_deblur = MFISTA.mfista(b=Bobs, P=PSF, P_center=P_center, reg=0.001, l=-np.inf, u=np.inf, max_iter=100, boundary_condition='reflexive', tv_type='iso', subprob=subprob_params, show_fig=True)
 
 # subprob_params = {
 #     'max_iter': 10, 
 #     'epsilon': 1e-5,
-#     'tv_type': 'iso'
 # }
-# X_deblur = MFISTA.mfista(Bobs=Bobs, PSF=PSF, P_center=P_center, reg=0.001, l=-np.inf, u=np.inf, max_iter=20, BC='periodic', tv_type='iso', subprob=subprob_params)
+# X_deblur = MFISTA.mfista(b=Bobs, P=PSF, P_center=P_center, reg=0.001, l=-np.inf, u=np.inf, max_iter=20, boundary_condition='periodic', tv_type='iso', subprob=subprob_params)
 
 fig, (ax1, ax2) = plt.subplots(1,2)
 

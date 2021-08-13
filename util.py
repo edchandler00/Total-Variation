@@ -48,7 +48,7 @@ def total_var(x, tv_type):
 
         return np.sum(np.abs(P[0])) + np.sum(np.abs(P[1]))
     else:
-        quit("ruh roh")
+        quit("Invalid Total Variation type (var: tv_type). Must be either 'iso' or 'l1'")
     
     return to_return
 
@@ -141,7 +141,7 @@ def proj_P(p, q, tv_type='iso'):
         r = p / np.maximum(1, np.abs(p))
         s = q / np.maximum(1, np.abs(q))
     else:
-        quit('ruh roh')
+        quit("Invalid Total Variation type (var: tv_type). Must be either 'iso' or 'l1'")
 
     return (r,s)
 
@@ -174,7 +174,7 @@ def dctshift(PSF, P_center):
     return Ps
 
 
-# FIXME: this only curr works for 2d!!
+# This only curr works for 2d!!
 def circshift(PSF, num_pos):
     # np.roll(np.roll(Pbig, -P_center[0], axis=0), -P_center[1], axis=1)
     return np.roll(np.roll(PSF, num_pos[0], axis=0), num_pos[1], axis=1)
