@@ -1,6 +1,6 @@
 import scipy.io
 import numpy as np
-import fgp
+import FGP
 import matplotlib.pyplot as plt
 import util
 import MFISTA
@@ -39,7 +39,9 @@ if __name__ == "__main__":
     fig, (ax1, ax2) = plt.subplots(1,2)
 
     ax1.imshow(Bobs, cmap="gray", vmin=0, vmax=1)
+    ax1.set_title("Blurry/Noisy")
     ax2.imshow(X_deblur, cmap="gray", vmin=0, vmax=1)
+    ax2.set_title("Reconstructed")
     plt.show()
 
 
