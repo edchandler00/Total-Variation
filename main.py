@@ -43,7 +43,7 @@ if __name__ == "__main__":
         }
         X_recon = MFISTA.mfista(b=Bobs, P=PSF, P_center=P_center, reg=.001, l=l, u=u, max_iter=max_iter, boundary_condition=boundary_condition, tv_type=tv_type, subprob=subprob_params, show_fig=show_fig)
     elif opt_task == "denoise":
-        X_recon, _, _ = FGP.fgp(b=Bobs, reg=0.02, l=l, u=u, param_init=[], max_iter=max_iter, epsilon=1e-4, tv_type=tv_type, print_info=True)
+        X_recon, _, _ = FGP.fgp(b=Bobs, reg=0.02, l=l, u=u, param_init=[], max_iter=max_iter, epsilon=1e-4, tv_type=tv_type, print_info=True, show_fig=show_fig)
     else:
         quit("Not Valid")
 

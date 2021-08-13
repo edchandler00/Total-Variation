@@ -3,7 +3,7 @@ import util
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-def fgp(b, reg, l, u, param_init, max_iter, epsilon=1e-4, tv_type='iso', print_info=True):
+def fgp(b, reg, l, u, param_init, max_iter, epsilon=1e-4, tv_type='iso', print_info=True, show_fig=False):
     """
     b: Observed noisy image,
     reg: regularization parameter lambda,
@@ -28,6 +28,11 @@ def fgp(b, reg, l, u, param_init, max_iter, epsilon=1e-4, tv_type='iso', print_i
     t_kplus1 = 1
     # fval = np.inf
     threshold_count = 0 # Keep track of the number of times below threshold
+
+    if show_fig:
+        the_pic = plt.imshow(D, cmap="gray", vmin=0, vmax=1)
+        plt.draw()
+        plt.pause(0.0001)
 
     for k in range(1, max_iter+1):
         # fold = fval
@@ -60,6 +65,11 @@ def fgp(b, reg, l, u, param_init, max_iter, epsilon=1e-4, tv_type='iso', print_i
         if print_info:
             print(f'iter {k}\t\t{fval}\t\t{re}')
     
+        if show_fig:
+            the_pic.set_data(D)
+            plt.draw()
+            plt.pause(0.0001)
+
         if threshold_count >= 5:
             break
 

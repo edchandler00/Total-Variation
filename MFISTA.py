@@ -54,6 +54,8 @@ def mfista(b, P, P_center, reg, l, u, max_iter, boundary_condition, tv_type, sub
 
     if show_fig:
         the_pic = plt.imshow(x_k, cmap="gray", vmin=0, vmax=1)
+        plt.draw()
+        plt.pause(0.0001)
 
     for k in range(1, max_iter+1):
         x_old = x_k
