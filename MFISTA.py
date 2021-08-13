@@ -52,6 +52,9 @@ def mfista(b, P, P_center, reg, l, u, max_iter, boundary_condition, tv_type, sub
     
     func_vals = []
 
+    if show_fig:
+        the_pic = plt.imshow(x_k, cmap="gray", vmin=0, vmax=1)
+
     for k in range(1, max_iter+1):
         x_old = x_k
         t_k = t_kplus1
@@ -87,10 +90,7 @@ def mfista(b, P, P_center, reg, l, u, max_iter, boundary_condition, tv_type, sub
         print(f'{k}\t\t{func_val:.5f}\t\t{total_var:.5f}\t\t{num_iter}\t\t{np.linalg.norm(x_k-x_old, "fro")/np.linalg.norm(x_old,"fro"):.5f}')
 
         if show_fig:
-            if k == 1:
-                the_pic = plt.imshow(x_k, cmap="gray", vmin=0, vmax=1)
-            else:
-                the_pic.set_data(x_k)
+            the_pic.set_data(x_k)
             plt.draw()
             plt.pause(0.0001)
 
